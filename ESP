@@ -1,0 +1,92 @@
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.CoreGui
+
+-- Create ESP Toggle Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0, 10, 0, 10)
+frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.Parent = screenGui
+
+-- Create ESP Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(1, -20, 0, 50)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.Text = "ESP: OFF"
+toggleButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Parent = frame
+
+local espEnabled = false
+
+-- Function to create ESP effect
+local function createESP(player)
+    local highlight = Instance.new("BillboardGui")
+    highlight.Name = "ESP"
+    highlight.AlwaysOnTop = true
+    highlight.Size = UDim2.new(0, 200, 0, 50)
+    highlight.StudsOffset = Vector3.new(0, 2, 0)
+    highlight.Parent = player.Character.Head
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Text = player.Name
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Parent = highlight
+
+    local box = Instance.new("BoxHandleAdornment")
+    box.Adornee = player.Character
+    box.Size = player.Character:GetExtentsSize()
+    box.Color3 = Color3.new(1, 0, 0)
+    box.Transparency = 0.5
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Parent = player.Character
+end
+
+-- Function to remove ESP effect
+local function removeESP(player)
+    if player.Character:FindFirstChild("ESP") then
+        player.Character.ESP:Destroy()
+    end
+    for _, v in pairs(player.Character:GetChildren()) do
+        if v:IsA("BoxHandleAdornment") then
+            v:Destroy()
+        end
+    end
+end
+
+-- Toggle ESP
+toggleButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    toggleButton.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            if espEnabled then
+                createESP(player)
+            else
+                removeESP(player)
+            end
+        end
+    end
+end)
+
+-- Update ESP for new players
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if espEnabled then
+            wait(1) -- Wait for character to load
+            createESP(player)
+        end
+    end)
+end)
+
+-- Remove ESP when player leaves
+game.Players.PlayerRemoving:Connect(function(player)
+    if player.Character then
+        removeESP(player)
+    end
+end)
